@@ -1,0 +1,29 @@
+{
+  "name": "desktop-native",
+  "version": "0.0.1",
+  "description": "Interact with desktop applications from node.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "test",
+    "compile": "cmake-js compile --CD -DDEBUG",
+    "compileDebug": "cmake-js compile --debug --CD -DDEBUG",
+    "install": "npm run-script compile && mv build/Debug/desktop-native.node dist/desktop-native.node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nickbradley/desktop-native.git"
+  },
+  "keywords": [
+    "desktop"
+  ],
+  "author": "Nick Bradley <nick@ncbradley.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nickbradley/desktop-native/issues"
+  },
+  "homepage": "https://github.com/nickbradley/desktop-native#readme",
+  "devDependencies": {
+    "cmake-js": "^5.1.0"
+  }
+}
