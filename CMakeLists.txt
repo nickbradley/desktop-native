@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 # Set the name and the supported language of the project
-PROJECT(native-desktop C)
+PROJECT(desktop-native C)
 
 if (UNIX)
 find_package(PkgConfig REQUIRED)
@@ -13,7 +13,7 @@ endif (UNIX)
 
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
-include_directories(${CMAKE_JS_INC})
+include_directories(${CMAKE_JS_INC} "node_modules/napi-macros")
 
 # Build a shared library named after the project from the files in `src/`
 file(GLOB SOURCE_FILES "src/*.c" "src/*.h")

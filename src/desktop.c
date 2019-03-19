@@ -3,53 +3,83 @@
 //
 
 #include <node_api.h>
+#include <napi-macros.h>
 #include <assert.h>
-#include <stdio.h>
+#include <stdlib.h>
 
-#ifdef __linux__
-#include "desktop_linux.h"
-#endif
-
+//#ifdef __linux__
+#include "common.h"
+//#endif
 
 #define CHECK_NAPI_RESULT(condition) (assert((condition) == napi_ok))
 
-napi_value ActivateWindow(napi_env env, napi_callback_info info) {
-    size_t argc = 0;
-    napi_value *argv = NULL;
-    CHECK_NAPI_RESULT(napi_get_cb_info(env, info, &argc, argv, NULL, NULL));
-    char *name = argv[0];
-    printf("ActivateWindow called with: %s\n", name);
-    bool activationResult = activate_window(name);
+NAPI_METHOD(activateWindow) {
+    NAPI_ARGV(1)
+    NAPI_ARGV_UTF8_MALLOC(name, 0)
 
-    napi_value result = NULL;
-    CHECK_NAPI_RESULT(napi_get_boolean(env, activationResult, &result));
+    bool result = activate_window(name);
 
-    return result;
+    free(name);
+
+    NAPI_RETURN_UINT32(result);
 }
 
+NAPI_METHOD(listWindows) {
+    napi_value windows;
+    CHECK_NAPI_RESULT(napi_create_array(env, &windows));
 
-napi_value ListWindows(napi_env env, napi_callback_info info) {
-    return NULL;
+    size_t count = 0;
+    struct DesktopWindow *window_list = list_windows(&count);
+
+    for (uint i = 0; i < count; i++) {
+        napi_value window;
+        CHECK_NAPI_RESULT(napi_create_object(env, &window));
+        napi_value identifier;
+        CHECK_NAPI_RESULT(napi_create_string_utf8(env, window_list[i].id, window_list[i].id_size, &identifier));
+        napi_value title;
+        CHECK_NAPI_RESULT(napi_create_string_utf8(env, window_list[i].title, window_list[i].title_size, &title));
+        CHECK_NAPI_RESULT(napi_set_named_property(env, window, "identifier", identifier));
+        CHECK_NAPI_RESULT(napi_set_named_property(env, window, "title", title));
+        CHECK_NAPI_RESULT(napi_set_element(env, windows, i, window));
+    }
+
+    free(window_list);
+
+    return windows;
 }
 
-napi_value ListApplications(napi_env env, napi_callback_info info) {
-    return NULL;
+NAPI_METHOD(listApplications) {
+    napi_value applications;
+    CHECK_NAPI_RESULT(napi_create_array(env, &applications));
+
+    size_t count = 0;
+    struct DesktopApplication **apps = list_applications(&count);
+
+    for (uint i = 0; i < count; i++) {
+        napi_value application;
+        CHECK_NAPI_RESULT(napi_create_object(env, &application));
+        napi_value name;
+        CHECK_NAPI_RESULT(napi_create_string_utf8(env, apps[i]->name, apps[i]->name_size, &name));
+        napi_value path;
+        CHECK_NAPI_RESULT(napi_create_string_utf8(env, apps[i]->path, apps[i]->path_size, &path));
+        napi_value icon;
+        CHECK_NAPI_RESULT(napi_create_string_utf8(env, apps[i]->icon, apps[i]->icon_size, &icon));
+        CHECK_NAPI_RESULT(napi_set_named_property(env, application, "name", name));
+        CHECK_NAPI_RESULT(napi_set_named_property(env, application, "path", path));
+        CHECK_NAPI_RESULT(napi_set_named_property(env, application, "icon", icon));
+        CHECK_NAPI_RESULT(napi_set_element(env, applications, i, application));
+
+        free(apps[i]);
+    }
+
+    free(apps);
+
+    return applications;
 }
 
-napi_value Init(napi_env env, napi_value exports) {
-    napi_value activateWindow;
-    napi_value listWindows;
-    napi_value listApplications;
-
-    CHECK_NAPI_RESULT(napi_create_function(env, "activateWindow", -1, ActivateWindow, NULL, &activateWindow));
-    CHECK_NAPI_RESULT(napi_create_function(env, "listWindows", -1, ListWindows, NULL, &listWindows));
-    CHECK_NAPI_RESULT(napi_create_function(env, NULL, -1, ListApplications, NULL, &listApplications));
-
-    CHECK_NAPI_RESULT(napi_set_named_property(env, exports, "activateWindow", activateWindow));
-    CHECK_NAPI_RESULT(napi_set_named_property(env, exports, "listWindows", listWindows));
-    CHECK_NAPI_RESULT(napi_set_named_property(env, exports, "listApplications", listApplications));
-
-    return exports;
+NAPI_INIT() {
+    NAPI_EXPORT_FUNCTION(activateWindow)
+    NAPI_EXPORT_FUNCTION(listWindows)
+    NAPI_EXPORT_FUNCTION(listApplications)
 }
 
-NAPI_MODULE(PROJECT_NAME, Init)
