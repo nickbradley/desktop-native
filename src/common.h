@@ -3,6 +3,7 @@
 //
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifndef DESKTOP_NATIVE_COMMON_H
 #define DESKTOP_NATIVE_COMMON_H

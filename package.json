@@ -5,6 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "configure": "cmake-js install && cmake-js configure",
     "test": "test",
     "compile": "cmake-js compile --CD -DDEBUG",
     "compileDebug": "cmake-js compile --debug --CD -DDEBUG",

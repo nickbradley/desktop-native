@@ -7,9 +7,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-//#ifdef __linux__
 #include "common.h"
-//#endif
 
 #define CHECK_NAPI_RESULT(condition) (assert((condition) == napi_ok))
 
@@ -31,7 +29,7 @@ NAPI_METHOD(listWindows) {
     size_t count = 0;
     struct DesktopWindow *window_list = list_windows(&count);
 
-    for (uint i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         napi_value window;
         CHECK_NAPI_RESULT(napi_create_object(env, &window));
         napi_value identifier;
@@ -55,7 +53,7 @@ NAPI_METHOD(listApplications) {
     size_t count = 0;
     struct DesktopApplication **apps = list_applications(&count);
 
-    for (uint i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         napi_value application;
         CHECK_NAPI_RESULT(napi_create_object(env, &application));
         napi_value name;
