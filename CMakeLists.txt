@@ -14,17 +14,10 @@ if (UNIX AND NOT APPLE)
 endif()
 
 if(APPLE)
-#    # for MacOS X or iOS, watchOS, tvOS (since 3.10.3)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ObjC++ -fno-exceptions")
-#    set(CMAKE_XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS "NO")
-#        set(CMAKE_XCODE_ATTRIBUTE_OTHER_CFLAGS "-ObjC++")
-#        set(CMKAE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET "10.8")
-##    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-#    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AppKit -framework Foundation")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ObjC -fno-exceptions")
     set(PLATFORM_LIBS "-framework AppKit -framework Foundation")
     file(GLOB PLATFORM_SRC "src/desktop_apple.m")
 endif()
-
 
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.

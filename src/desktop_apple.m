@@ -48,6 +48,7 @@ struct DesktopApplication** list_applications(size_t *count) {
     // https://stackoverflow.com/a/22112941
     __block BOOL finish = NO;
 
+    //https://stackoverflow.com/a/24281487
     NSMetadataQuery *query = [NSMetadataQuery new];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"kMDItemKind == 'Application'"];
     [[NSNotificationCenter defaultCenter] addObserverForName:
@@ -63,6 +64,7 @@ struct DesktopApplication** list_applications(size_t *count) {
 
     // TODO Handle this with promises
     // https://stackoverflow.com/a/36732342
+    // https://stackoverflow.com/q/22112700
     while(!finish) {
         [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
     }
@@ -78,59 +80,62 @@ struct DesktopApplication** list_applications(size_t *count) {
         /* end get app name */
 
         /* start get app path */
-        NSString *bundlePath = [item valueForAttribute:NSMetadataItemPathKey]; //NSMetadataItemCFBundleIdentifierKey];
+        NSString *bundlePath = [item valueForAttribute:NSMetadataItemPathKey];
         const char *bundlePathUTF8 = [bundlePath cStringUsingEncoding:NSUTF8StringEncoding];
         NSUInteger bundlePathLen = [bundlePath lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
         /* end get app path */
 
 
         /* Get app icon as base64 string */
+        BOOL hasIcon = 0;
         if ([bundlePath length] > 0) {
-//            NSString *bundlePath = @"/Applications/Google Chrome.app";
             NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
             NSDictionary<NSString *, id> *infos = bundle.infoDictionary;
             NSImageName iconName = infos[@"CFBundleIconFile"];
             NSString *iconPath = [bundle pathForImageResource:iconName];
 
-            if ([iconPath length] == 0) {
-                continue;
+            if ([iconPath length] > 0) {
+                NSRect rect = NSMakeRect(0, 0, ICON_SIZE, ICON_SIZE);
+
+                NSImage *iconImg = NULL;
+                if ([[iconPath pathExtension] isEqualToString:@"icns"]) {
+                    iconImg = [[NSImage alloc] initWithContentsOfFile:iconPath];
+                } else {
+                    iconImg = [[NSWorkspace sharedWorkspace] iconForFile:iconPath];
+                }
+
+                NSImageRep *iconRep = [iconImg bestRepresentationForRect:rect context:NULL hints:NULL];
+                NSImage *bestIcon = [[NSImage alloc] init];
+                [bestIcon addRepresentation:iconRep];
+
+                CGImageRef CGImage = [bestIcon CGImageForProposedRect:nil context:nil hints:nil];
+                NSBitmapImageRep *bitmap = [[[NSBitmapImageRep alloc] initWithCGImage:CGImage] autorelease];
+                NSData *png = [bitmap representationUsingType:NSPNGFileType properties:[NSMutableDictionary dictionary]];
+                NSString *base64 = [@"data:image/png;base64," stringByAppendingString:[png base64EncodedStringWithOptions:0]];
+
+                [bestIcon release];
+                [iconImg release];
+
+                const char *base64UTF8 = [base64 UTF8String];
+                const NSUInteger base64UTF8Len = [base64 lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+                apps[i] = (struct DesktopApplication*)malloc(sizeof(struct DesktopApplication) + sizeof(char) * base64UTF8Len);
+                strcpy(apps[i]->icon, base64UTF8);
+                apps[i]->icon_size = base64UTF8Len;
+
+                hasIcon = 1;
             }
+        }
 
-            NSRect rect = NSMakeRect(0, 0, 128, 128);
-
-            NSImage *iconImg = NULL;
-            if ([[iconPath pathExtension] isEqualToString:@"icns"]) {
-                iconImg = [[NSImage alloc] initWithContentsOfFile:iconPath];
-            } else {
-                iconImg = [[NSWorkspace sharedWorkspace] iconForFile:iconPath];
-            }
-
-            NSImageRep *iconRep = [iconImg bestRepresentationForRect:rect context:NULL hints:NULL];
-            NSImage *bestIcon = [[NSImage alloc] init];
-            [bestIcon addRepresentation:iconRep];
-            NSBitmapImageRep *bitmap = [NSBitmapImageRep imageRepsWithData:bestIcon.TIFFRepresentation][0];
-            NSData *png = [bitmap representationUsingType:NSPNGFileType properties:NULL];
-            NSString *base64 = [@"data:image/png;base64," stringByAppendingString:[png base64EncodedStringWithOptions:0]];
-
-            [bestIcon release];
-            [iconImg release];
-
-            const char *base64UTF8 = [base64 UTF8String];
-            const NSUInteger base64UTF8Len = [base64 lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-            apps[i] = (struct DesktopApplication*)malloc(sizeof(struct DesktopApplication) + sizeof(char) * base64UTF8Len);
-            strcpy(apps[i]->icon, base64UTF8);
-            apps[i]->icon_size = base64UTF8Len;
-
-        } else {
+        if (!hasIcon) {
             apps[i] = (struct DesktopApplication*)malloc(sizeof(struct DesktopApplication));
             apps[i]->icon_size = 0;
         }
         /* end get app icon */
 
         strcpy(apps[i]->name, appNameUTF8);
-        apps[i]->name_size = appNameLen;
         strcpy(apps[i]->path, bundlePathUTF8);
         apps[i]->path_size = bundlePathLen;
+        apps[i]->name_size = appNameLen;
 
         i++;
     }
