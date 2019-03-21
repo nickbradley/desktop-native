@@ -1,4 +1,4 @@
-declare module "native-desktop" {
+declare module "desktop-native" {
     export interface Window {
         identifier: string;
         title: string;
