@@ -3,11 +3,11 @@
 //
 
 #include <node_api.h>
-#include <napi-macros.h>
 #include <assert.h>
 #include <stdlib.h>
 
 #include "common.h"
+#include "napi-macros.h"
 
 #define CHECK_NAPI_RESULT(condition) (assert((condition) == napi_ok))
 

@@ -21,7 +21,7 @@ endif()
 
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
-include_directories(${CMAKE_JS_INC} "node_modules/napi-macros")
+#include_directories(${CMAKE_JS_INC} "node_modules/napi-macros")
 
 # Build a shared library named after the project from the files in `src/`
 file(GLOB COMMON_SRC "src/desktop.c" "src/common.h")
