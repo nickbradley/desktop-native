@@ -267,7 +267,7 @@ struct DesktopApplication** list_applications(size_t *count) {
     for (l = app_list; l != NULL; l = l->next) {
         pos++;
         GAppInfo *app = l->data;
-        const char *disp_name = g_app_info_get_name(app);  // can also use display_name but this seems more expected
+        const char *disp_name = g_app_info_get_display_name(app); //g_app_info_get_name(app);  // can also use display_name but this seems more expected
         const char *commandline = g_app_info_get_commandline(app);
         GIcon *icon = g_app_info_get_icon(app);
         gchar *dataStr = NULL;
