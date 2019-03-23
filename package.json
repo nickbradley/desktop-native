@@ -24,8 +24,10 @@
     "url": "https://github.com/nickbradley/desktop-native/issues"
   },
   "homepage": "https://github.com/nickbradley/desktop-native#readme",
+  "dependencies": {
+    "cmake-js": "5.1.0"
+  },
   "devDependencies": {
-    "cmake-js": "5.1.0",
     "napi-macros": "1.8.2"
   }
 }
