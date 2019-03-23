@@ -28,6 +28,5 @@
     "cmake-js": "5.1.0",
     "napi-macros": "1.8.2"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
