@@ -55,14 +55,26 @@ struct DesktopWindow* list_windows(size_t *count) {
 
     struct DesktopWindow *window_list = (struct DesktopWindow*)malloc(list_count * sizeof(struct DesktopWindow));
 
-    for (int i = 1; i <= list_count; i++) {
-        NSAppleEventDescriptor *app = [apps descriptorAtIndex:i];
+    for (int i = 0; i < list_count; i++) {
+        NSAppleEventDescriptor *app = [apps descriptorAtIndex:i+1];
 
         const NSString *appName = [[app descriptorForKeyword:[app keywordForDescriptorAtIndex:1]] stringValue];
         NSUInteger appNameLen = [appName lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 
         const NSString *appTitle = [[app descriptorForKeyword:[app keywordForDescriptorAtIndex:2]] stringValue];
-        NSUInteger appTitleLen = [appTitle lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+        NSInteger appTitleLen = [appTitle lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+
+        if (appNameLen > WINDOW_ID_LEN)
+        {
+            NSLog(@"[WARN] App name exceeded %d bytes and was truncated.", WINDOW_ID_LEN);
+            appNameLen = WINDOW_ID_LEN;
+        }
+
+        if (appTitleLen > WINDOW_TITLE_LEN)
+        {
+            NSLog(@"[WARN] App name exceeded %d bytes and was truncated.", WINDOW_ID_LEN);
+            appTitleLen = WINDOW_TITLE_LEN;
+        }
 
         strcpy(window_list[i].id, [appName UTF8String]);
         strcpy(window_list[i].title, [appTitle UTF8String]);
@@ -70,7 +82,7 @@ struct DesktopWindow* list_windows(size_t *count) {
         window_list[i].title_size = appTitleLen;
     }
 
-    *count = list_count - 1;  // Offset the 1-based indexing used by AppleScript
+    *count = list_count;
     return window_list;
 }
 
