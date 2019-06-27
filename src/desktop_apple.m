@@ -4,6 +4,8 @@
 #import <AppKit/NSApplication.h>
 #import <AppKit/NSImage.h>
 
+
+
 #include "common.h"
 
 bool activate_window(char *name) {
@@ -20,25 +22,55 @@ bool activate_window(char *name) {
 }
 
 struct DesktopWindow* list_windows(size_t *count) {
-    uint i = 0;
-    NSArray *apps = [NSWorkspace sharedWorkspace].runningApplications;
+    // Use AppleScript since the only way to read window titles
+    // For this to work, you need to give permissions in Settings > Privacy & Security > Accessibility
 
-    const unsigned long list_count = [apps count];
+    // example https://stackoverflow.com/a/6805256
+    // TODO read from compiled script (app_titles.scpt)
+    NSMutableString *scriptText = [NSMutableString stringWithString:@"global apps\n"];
+    [scriptText appendString:@"set apps to {}\n"];
+    [scriptText appendString:@"tell application \"System Events\"\n"];
+    [scriptText appendString:@"set processList to every process whose visible is true\n"];
+    [scriptText appendString:@"repeat with a from 1 to length of processList\n"];
+    [scriptText appendString:@"set proc to item a of processList\n"];
+    [scriptText appendString:@"set appName to name of proc\n"];
+    [scriptText appendString:@"tell process appName\n"];
+    [scriptText appendString:@"try\n"];
+    [scriptText appendString:@"tell (1st window whose value of attribute \"AXMain\" is true)\n"];
+    [scriptText appendString:@"copy {name:appName, title:value of attribute \"AXTitle\"} to the end of apps\n"];
+    [scriptText appendString:@"end tell\n"];
+    [scriptText appendString:@"end try\n"];
+    [scriptText appendString:@"end tell\n"];
+    [scriptText appendString:@"end repeat\n"];
+    [scriptText appendString:@"end tell\n"];
+    [scriptText appendString:@"return apps"];
+
+    NSDictionary *error = nil;
+
+    NSAppleScript *script = [[[NSAppleScript alloc] initWithSource:scriptText] autorelease];
+
+    NSAppleEventDescriptor *apps = [script executeAndReturnError:&error];
+
+    const NSInteger list_count = [apps numberOfItems];
+
     struct DesktopWindow *window_list = (struct DesktopWindow*)malloc(list_count * sizeof(struct DesktopWindow));
 
-    for (NSRunningApplication *app in apps) {
-        const char *appName = [app.localizedName cStringUsingEncoding:NSUTF8StringEncoding];
-        NSUInteger appNameLen = [app.localizedName lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+    for (int i = 1; i <= list_count; i++) {
+        NSAppleEventDescriptor *app = [apps descriptorAtIndex:i];
 
-        strcpy(window_list[i].id, appName);
-        strcpy(window_list[i].title, appName);
+        const NSString *appName = [[app descriptorForKeyword:[app keywordForDescriptorAtIndex:1]] stringValue];
+        NSUInteger appNameLen = [appName lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+
+        const NSString *appTitle = [[app descriptorForKeyword:[app keywordForDescriptorAtIndex:2]] stringValue];
+        NSUInteger appTitleLen = [appTitle lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+
+        strcpy(window_list[i].id, [appName UTF8String]);
+        strcpy(window_list[i].title, [appTitle UTF8String]);
         window_list[i].id_size = appNameLen;
-        window_list[i].title_size = appNameLen;
-
-        i++;
+        window_list[i].title_size = appTitleLen;
     }
 
-    *count = list_count;
+    *count = list_count - 1;  // Offset the 1-based indexing used by AppleScript
     return window_list;
 }
 
