@@ -11,6 +11,7 @@
 #define ICON_SIZE 128
 #define WINDOW_ID_LEN 255
 #define WINDOW_TITLE_LEN 255
+#define APP_ID_LEN 255
 #define APP_NAME_LEN 255
 #define APP_PATH_LEN 1020
 
@@ -22,9 +23,11 @@ typedef struct DesktopWindow {
 } window;
 
 typedef struct DesktopApplication {
+    size_t id_size;
     size_t name_size;
     size_t path_size;
     size_t icon_size;
+    char id[APP_ID_LEN];
     char name[APP_NAME_LEN];
     char path[APP_PATH_LEN];
     char icon[];

@@ -117,6 +117,13 @@ struct DesktopApplication** list_applications(size_t *count) {
     struct DesktopApplication **apps = (struct DesktopApplication**)malloc(list_count * sizeof(struct DesktopApplication *));
 
     for (NSMetadataItem *item in query.results) {
+        NSString *appId = [item valueForAttribute:NSMetadataItemCFBundleIdentifierKey];
+        if (!appId) {
+            appId = @"";
+        }
+        const char *appIdUTF8 = [appId cStringUsingEncoding:NSUTF8StringEncoding];
+        NSUInteger appIdLen = [appId lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+
         /* start get app name */
         NSString *appName = [item valueForAttribute:NSMetadataItemDisplayNameKey];
         const char *appNameUTF8 = [appName cStringUsingEncoding:NSUTF8StringEncoding];
@@ -176,8 +183,10 @@ struct DesktopApplication** list_applications(size_t *count) {
         }
         /* end get app icon */
 
+        strcpy(apps[i]->id, appIdUTF8);
         strcpy(apps[i]->name, appNameUTF8);
         strcpy(apps[i]->path, bundlePathUTF8);
+        apps[i]->id_size = appIdLen;
         apps[i]->path_size = bundlePathLen;
         apps[i]->name_size = appNameLen;
 

@@ -56,12 +56,15 @@ NAPI_METHOD(listApplications) {
     for (int i = 0; i < count; i++) {
         napi_value application;
         CHECK_NAPI_RESULT(napi_create_object(env, &application));
+        napi_value id;
+        CHECK_NAPI_RESULT(napi_create_string_utf8(env, apps[i]->id, apps[i]->id_size, &id));
         napi_value name;
         CHECK_NAPI_RESULT(napi_create_string_utf8(env, apps[i]->name, apps[i]->name_size, &name));
         napi_value path;
         CHECK_NAPI_RESULT(napi_create_string_utf8(env, apps[i]->path, apps[i]->path_size, &path));
         napi_value icon;
         CHECK_NAPI_RESULT(napi_create_string_utf8(env, apps[i]->icon, apps[i]->icon_size, &icon));
+        CHECK_NAPI_RESULT(napi_set_named_property(env, application, "id", id));
         CHECK_NAPI_RESULT(napi_set_named_property(env, application, "name", name));
         CHECK_NAPI_RESULT(napi_set_named_property(env, application, "path", path));
         CHECK_NAPI_RESULT(napi_set_named_property(env, application, "icon", icon));

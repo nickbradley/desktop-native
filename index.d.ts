@@ -8,6 +8,7 @@ declare module "desktop-native" {
         name: string;
         icon: string;
         path: string;
+        id: string;
     }
 
     export function activateWindow(name: string): boolean;
