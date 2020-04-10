@@ -267,7 +267,15 @@ struct DesktopApplication** list_applications(size_t *count) {
     for (l = app_list; l != NULL; l = l->next) {
         pos++;
         GAppInfo *app = l->data;
-        const char *disp_name = g_app_info_get_display_name(app); //g_app_info_get_name(app);  // can also use display_name but this seems more expected
+
+//        g_app_info_get_id(app);
+//        g_app_info_get_display_name(app);
+//        g_app_info_get_name(app);
+        const char *disp_name = g_app_info_get_id(app);
+        gchar *suffix = g_strrstr(disp_name, ".desktop");
+        if (suffix != NULL) {
+            *suffix = '\0';
+        }
         const char *commandline = g_app_info_get_commandline(app);
         GIcon *icon = g_app_info_get_icon(app);
         gchar *dataStr = NULL;
@@ -285,14 +293,14 @@ struct DesktopApplication** list_applications(size_t *count) {
 
                     g_free(base64);
                 } else {
-                    g_warning ("Failed load icon: %s", error->message);
+                    g_info ("Failed load icon: %s", error->message);
                     g_error_free(error);
                 }
             } else {
-                g_warning("Failed to get pixel buffer from icon.");
+                g_info("Failed to get pixel buffer from icon.");
             }
         } else {
-            g_warning("Failed to get default app icon.");
+            g_info("Failed to get default app icon.");
         }
 
         if (dataStr != NULL) {

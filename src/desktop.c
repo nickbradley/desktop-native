@@ -9,7 +9,12 @@
 #include "common.h"
 #include "napi-macros.h"
 
-#define CHECK_NAPI_RESULT(condition) (assert((condition) == napi_ok))
+#ifdef DEBUG
+    #define CHECK_NAPI_RESULT(condition) (assert((condition) == napi_ok))
+#else
+    // Don't assert anything
+    #define CHECK_NAPI_RESULT(condition) condition
+#endif
 
 NAPI_METHOD(activateWindow) {
     NAPI_ARGV(1)
